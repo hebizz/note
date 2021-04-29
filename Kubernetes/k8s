@@ -1,0 +1,68 @@
+获取证书：openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+
+kubeadm token create 获取新token
+kubeadm token list  获取token列表
+默认情况下，通过 kubeadm create token 创建的 token ，过期时间是24小时，这就是为什么过了一天无法再次使用之前记录的 kube join 原生脚本的原因，也可以运行 kubeadm token create --ttl 0 生成一个永不过期的 token
+
+
+#kubeadm join 报错: 是因为swapoff没有完全关闭，还需要手动删掉/etc/fstab下的swap分区相关信息
+[kubelet-check] The HTTP call equal to 'curl -sSL http://localhost:10248/healthz' failed with error: Get http://localhost:10248/healthz: dial tcp 127.0.0.1:10248: connect: connection refused.
+
+kubectl label nodes hostname kubernetes.io/role=node
+
+kubectl delete --namespace=kube-system deployment coredns
+kubectl create -f coredns.yaml
+
+
+问题：
+failed to set bridge addr: "cni0" already has an IP address different from 10.244.2.1/24
+
+#在所有节点之进行操作
+kubeadm reset
+systemctl stop kubelet
+systemctl stop docker
+rm -rf /var/lib/cni/
+rm -rf /var/lib/kubelet/*
+rm -rf /etc/cni/
+ifconfig cni0 down
+ifconfig flannel.1 down
+ifconfig docker0 down
+ip link delete cni0
+ip link delete flannel.1
+##重启kubelet
+systemctl restart kubelet
+##重启docker
+systemctl restart docker
+
+
+#查看pod在哪个worker
+kubectl get pod -o wide
+
+#查看pod对外端口
+kubectl get svc
+
+问题：
+Error: release kong failed: Service “kong-kong-admin” is invalid: spec.ports[0].nodePort: Invalid value: 8444: provided port is not in the valid range. The range of valid ports is 30000-32767
+k8s 集群 nodePort 分配的端口范围为：30000-32767,
+解决方法就是调整 kube-apiserver 组件启动参数，指定 nodePort 范围。如果是用 kubeadm 安装的集群，那么 apiserver 是以静态 pod 的形式运行，pod 文件定义在 /etc/kubernetes/manifests/kube-apiserver.yaml。/etc/kubernetes/manifests 目录下是所有静态 pod 文件的定义，kubelet 会监控该目录下文件的变动，只要发生变化，pod 就会重建，响应相应的改动。所以我们修改 /etc/kubernetes/manifests/kube-apiserver.yaml 文件，添加 nodePort 范围参数后会自动生效，无需进行其他操作：
+vim /etc/kubernetes/manifests/kube-apiserver.yaml
+在 command 下添加 --service-node-port-range=1-65535 
+
+
+#pod deployment
+pod是单一亦或一组容器的合集
+deployment是pod版本管理的工具 用来区分不同版本的pod
+
+问题：
+1.创建pod的时候一定会创建 deployment 么 ？
+2.创建deployment的时候一定会创建 pod么？
+
+1.pod是可以单独创建并进行生命周期管理的
+2.单独创建pod的时候就不会有deployment出现，但是创建deployment的时候一定会创建pod,因为pod是一个基础的单位。
+3.任何的控制器单位的具体实现必须落到pod去实现。
+
+
+kubeadm  join 10.55.2.36:6443 --token amyssd.ktm6pfep7zotqlj2 --discovery-token-ca-cert-hash 2ab39b7c91348b174e3b42496bced241282314691134d20e56f2ddefb9f4d607
+
+#进入k8s pod容器内部
+kubectl exec -it "pod" /bin/bash

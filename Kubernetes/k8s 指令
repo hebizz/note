@@ -1,0 +1,7 @@
+#获得所有创建的deployment
+kubectl get deployments --all-namespaces
+
+#删除deployment（删除pod,只有删除deployment才会完全删除）
+kubectl delete deployments pod名字 -n pod的namespace
+
+kubectl get all --all-namespaces

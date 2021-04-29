@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-registry-images
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce #[ReadWriteOnce | ReadOnlyMany | ReadWriteMany]
+  hostPath: #only ReadWriteOnce
+    path: /data/registry/images
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-registry-images
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi

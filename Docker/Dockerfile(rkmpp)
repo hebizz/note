@@ -1,0 +1,41 @@
+FROM arm64v8/ubuntu
+
+RUN apt-get update \
+    && apt-get install -y \
+    libtool \
+    bison \
+    flex \
+    gtk-doc-tools \
+    libperl-dev libgtk2.0-dev \
+    librtmp-dev freeglut3 freeglut3-dev \
+    libjpeg-dev \
+    ffmpeg \
+    bash
+
+
+COPY ./rkmpp /usr/local/rkmpp
+
+RUN cd /usr/local/rkmpp \
+  && cp mpp.conf /etc/ld.so.conf.d/mpp.conf \
+  && rm -f /usr/local/rkmpp/lib/*.so.0 \
+  && ldconfig -v
+
+RUN apt-get install -y  python-pip \
+    && pip install supervisor \
+    && mkdir /etc/supervisor
+
+COPY ./config.d/ /etc/supervisor
+
+COPY ./supervisord.conf  /etc/supervisor
+
+
+#ENTRYPOINT [ "bash", "/usr/local/rkmpp/bin/run.sh" ]
+ENTRYPOINT [ "supervisord","-c","/etc/supervisor/supervisord.conf"]
+
+#docker run --privileged -e DEVICE_INPUT=/dev/video2 -e RTMP_URL=rtmp://192.168.0.123/live/usb2 registry.jiangxingai.com:5000/base/rkmpp:arm64v8-cpu-0.1.0
+
+#docker run --privileged -v /dev/shm:/dev/shm 
+
+
+docker run -d -p 1935:1935 registry.jiangxingai.com:5000/nginx-rtmp:arm64v8-cpu-0.1.0
+

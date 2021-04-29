@@ -1,0 +1,44 @@
+#redis安装
+wget http://download.redis.io/releases/redis-5.0.5.tar.gz
+tar xzf redis-5.0.5.tar.gz
+cd redis-5.0.5
+make
+
+修改redis.conf，把daemonize no修改成daemonize yes，保存退出；
+
+#启动redis服务端
+src/redis-server  redis.conf
+
+#启动客户端
+src/redis-cli -h 地址 -p 6379
+
+#停止redis
+kill -9 会导致持久化丢失
+
+src/redis-cli shutdown
+
+
+#redis 增加密码
+vim redis.conf
+找到 #requirepass foobared 去掉注释，修改密码 -> requirepass yourpassword
+bind 127.0.0.1 注释掉
+protected-mode 设置成no 
+
+
+#hiredis安装
+wget https://github.com/redis/hiredis/archive/v0.14.0.tar.gz
+tar zxvf v0.14.0.tar.gz 
+cd ,make,make install 
+
+#c++ opencv
+apt-get install libopencv-dev,安装后会报一个.hpp错误，移动至上级opencv目录下即可
+
+
+#c++ 编译成可执行文件
+gcc -o  目标文件 原文件 -L/usr/local/lib/ -lhiredis 
+
+执行 /sbin/ldconfig
+
+
+列出所有key: keys *
+清空所有数据：flushall 

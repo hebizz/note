@@ -1,0 +1,108 @@
+Makisu
+特点包括：
+1.不需要特殊权限，开发过程更加容易移植；
+image更加轻量是因为中间层只包括运行开发步骤前后文件系统的差别。Docker计算差别，并使用需要特权的CoW文件系统生成中间层。
+为了实现不需要特权生成中间层，Makisu在内存中进行文件系统扫描。运行开发步骤后，在此扫描文件系统，更新内存视图，将变化文件添加到新一层。
+
+2.开发集群内部使用分布式层间缓存提高性能；
+Makisu用key-value数据库映射Dockerfiles中操作行到存放在Docker镜像仓库中的层数。key-value数据库可以用Redis或者文件系统。
+
+3.与容器Docker兼容；支持标准和多阶段开发命令。
+为开发过程对iamge层进行控制，Makisu映入了新的操作注释：#!COMMIT，指代Dockerfile中可以生成新层的行。这一简单机制对减少容器image大小很关键（ 后续操作要删除或者更新文件 ）每个commit层在分布式缓存中得以体现，集群中其它开发者也可以使用这一更新结果
+
+
+以下是一个Dockerfile的实例，其中使用了Makisu的操作注释：
+FROM debian:8 AS build_phase
+RUN apt-get install wget #!COMMIT
+RUN apt-get install go1.10 #!COMMIT
+COPY git-repo git-repo
+RUN cd git-repo && make
+
+FROM debian:8 AS run_phase
+RUN apt-get install wget #!COMMIT
+LABEL service-name=test
+COPY –from=build_phase git-repo/binary /binary
+ENTRYPOINT /binary
+
+本例中，安装了运行时需求包（wget和go1.10），并在相应层内commit，后续创建服务代码。当这些committed层创建后，在分布式缓存中得以更新，其它开发这可以使用，大大提高了开发工作冗余操作的速度。
+
+第二阶段，开发再次安装wget，这次Makisu重用了之前生成的代码。最后，服务代码从开发阶段拷贝到最终image，并生成最终image。这一示例生成一个瘦身的最终image
+
+Makisu支持多阶段开发，通过#!COMMIT的引入，可以实现不必要步骤跳过，并节省空间。
+另外，因为#!COMMIT格式化为注释，Makisu使用的Dockerfiles可以被Docker完全兼容。
+
+
+项目地址：https://github.com/uber/makisu
+下载：go get github.com/uber/makisu/bin/makisu
+安装：go build main.go
+执行方式：
+1.如果执行不带RUN命令的Dockerfile:
+makisu build -t ${TAG} --dest ${TAR_PATH} ${CONTEXT}
+
+2.带有RUN命令的Dockerfile:
+需要在~/.bashrc or ~/.zshrc 目录下加入函数：
+function makisu_build() {
+    makisu_version=${MAKISU_VERSION:-v0.1.11}
+    cd ${@: -1}
+    docker run -i --rm --net host \
+        -v /var/run/docker.sock:/docker.sock \
+        -e DOCKER_HOST=unix:///docker.sock \
+        -v $(pwd):/makisu-context \
+        -v /tmp/makisu-storage:/makisu-storage \
+        gcr.io/makisu-project/makisu:$makisu_version build \
+            --commit=explicit \
+            --modifyfs=true \
+            --load \
+            ${@:1:${#@}-1} /makisu-context
+    cd -
+}
+
+需要注意的参数：
+--load 选项拉来确定Docker套接字安装是否安装，用于将图像加载回Docker守护进程，以方便本地开发
+--modifyfs-true选项让Makisu承担容器内文件系统的所有权。容器中不属于基本映像的文件将在构建开始时被覆盖。
+--commit = explicit选项让Makisu在看到#COMMIT时和Dockerfile的末尾只提交层。
+
+然后通过makisu_build -t myimage . 即可创建
+
+适用场景：在有多个重复commit提交层时，可以使用makisu来构建，可以显著减少image的构建时间和大小。
+
+
+
+
+
+性能测试：
+
+如下例子所示，需要安装很多依赖包，可以通过COMMIT提交给缓存，当下次有同样的开发者需要时，就可以直接去缓存中取，
+可以大量减少构建时间。此镜像构建出来833MB，时间大约10分钟，并会有提示信息：
+ Step 2/13 (modifyfs) : RUN apt-get update && apt-get install  -y --no-install-recommends libhdf5-serial-dev     hdf5-tools    libhdf5-dev   zlib1g-dev libjpeg8-dev   python3-pip   python3-h5py  build-essential  wget   cmake    git libgtk2.0-dev  pkg-config  libavcodec-dev    libavformat-dev  libswscale-dev   python3-dev  libtbb2  libtbb-dev libjpeg-dev    libdc1394-22-dev #!COMMIT (54979855)"}
+可以看到COMMIT后面有一个ID，这个ID就是存储在缓存中的编号。
+
+FROM ubuntu:18.04 AS builder
+
+RUN apt-get update && apt-get install  -y --no-install-recommends libhdf5-serial-dev     hdf5-tools    libhdf5-dev   zlib1g-dev libjpeg8-dev   python3-pip   python3-h5py  build-essential  wget   cmake    git libgtk2.0-dev  pkg-config  libavcodec-dev    libavformat-dev  libswscale-dev   python3-dev  libtbb2  libtbb-dev libjpeg-dev    libdc1394-22-dev #!COMMIT
+RUN mkdir -p /workspace/github.com/uber/makisu
+WORKDIR /workspace/github.com/uber/makisu
+
+ADD Makefile .
+ADD go.mod ./go.mod
+ADD go.sum ./go.sum
+RUN make vendor
+ADD .git ./.git
+ADD bin ./bin
+ADD lib ./lib
+RUN make lbins
+ENTRYPOINT ["/makisu-internal/makisu"]
+
+
+
+再看如下例子：
+FROM ubuntu:18.04 AS builder
+
+RUN apt-get update && apt-get install  -y --no-install-recommends libhdf5-serial-dev     hdf5-tools    libhdf5-dev   zlib1g-dev libjpeg8-dev   python3-pip   python3-h5py  build-essential  wget   cmake    git libgtk2.0-dev  pkg-config  libavcodec-dev    libavformat-dev  libswscale-dev   python3-dev  libtbb2  libtbb-dev libjpeg-dev    libdc1394-22-dev #!COMMIT
+
+ENTRYPOINT ["/makisu-internal/makisu"]
+
+在构建时会有打印信息：
+Step 2/3 (modifyfs) : RUN apt-get update && apt-get install  -y --no-install-recommends libhdf5-serial-dev     hdf5-tools    libhdf5-dev   zlib1g-dev libjpeg8-dev   python3-pip   python3-h5py  build-essential  wget   cmake    git libgtk2.0-dev  pkg-config  libavcodec-dev    libavformat-dev  libswscale-dev   python3-dev  libtbb2  libtbb-dev libjpeg-dev    libdc1394-22-dev #!COMMIT (54979855)"}
+此时的这个COMMIT后面的id和上面提交过的id一致，则可以直接去数据库中取，达到快速构建的效果。此镜像只需2分钟则可以构建好，大小也
+只是FROM的基础镜像的大小

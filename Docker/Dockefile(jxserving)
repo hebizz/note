@@ -1,0 +1,100 @@
+FROM arm64v8/ubuntu:18.04
+
+COPY ./src /home/tx1-node2/ai-service/src
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libhdf5-serial-dev \ 
+    hdf5-tools \
+    libhdf5-dev \
+    zlib1g-dev \ 
+    libjpeg8-dev \
+    python3-pip \
+    python3-h5py \
+    build-essential \
+    wget \
+    cmake \
+    git \
+    libgtk2.0-dev \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    python3-dev \
+    libtbb2 \
+    libtbb-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libdc1394-22-dev
+
+
+RUN pip3 install -U --no-cache-dir numpy==1.16.0 \
+    requests==2.20.0 \
+    tornado==4.5.2 \
+    setuptools \
+    grpcio \
+    absl-py \
+    py-cpuinfo \
+    psutil \
+    portpicker \
+    six \
+    mock \
+    gast \
+    astor \
+    termcolor \
+    protobuf \
+    wrapt \ 
+    google-pasta \
+    keras-preprocessing 
+
+
+RUN wget https://developer.download.nvidia.com/compute/redist/jp/v42/tensorflow-gpu/tensorflow_gpu-1.13.1+nv19.3-cp36-cp36m-linux_aarch64.whl \
+    && pip3 install tensorflow_gpu-1.13.1+nv19.3-cp36-cp36m-linux_aarch64.whl \
+    && rm -rf tensorflow_gpu-1.13.1+nv19.3-cp36-cp36m-linux_aarch64.whl
+
+
+COPY ./cuda-10.0 /usr/local/cuda-10.0
+
+COPY ./ld.conf  /etc/ld.so.conf.d/
+
+RUN ldconfig -v 
+
+WORKDIR /home/tx1-node2/ai-service/src
+
+RUN  git clone https://github.com/opencv/opencv.git \
+    && cd opencv/ \
+    && git checkout 4.1.0 \
+    && cd .. \
+    && git clone https://github.com/opencv/opencv_contrib.git \
+    && cd opencv_contrib/ \
+    && git checkout 4.1.0 
+         
+WORKDIR /home/tx1-node2/ai-service/src/opencv/build
+
+ENV PY_NAME "python3.6"
+
+RUN  cmake -DCMAKE_BUILD_TYPE=RELEASE \
+-DCMAKE_INSTALL_PREFIX=/usr/local \
+\
+-DPYTHON2_EXECUTABLE=$(which python3) \
+-DPYTHON_INCLUDE_DIR=/usr/include/$PY_NAME \
+-DPYTHON_INCLUDE_DIR2=/usr/include/aarch64-linux-gnu/$PY_NAME \
+-DPYTHON_LIBRARY=/usr/lib/aarch64-linux-gnu/lib$PY_NAME.so \
+-DPYTHON2_NUMPY_INCLUDE_DIRS=/usr/lib/$PY_NAME/dist-packages/numpy/core/include/ \
+\
+-DBUILD_DOCS=OFF \
+-DBUILD_EXAMPLES=OFF \
+-DBUILD_TESTS=OFF \
+-DBUILD_PERF_TESTS=OFF \
+\
+-DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+.. 
+
+RUN  make -j$(nproc --all) \
+     && make install
+
+	
+WORKDIR /home/tx1-node2/ai-service/src
+
+
+ENTRYPOINT ["python3","run.py"]

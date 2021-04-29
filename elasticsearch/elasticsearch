@@ -1,0 +1,25 @@
+下载elasticsearch安装包，解压
+官方地址：https://www.elastic.co/downloads/past-releases
+
+在bin/目录下，直接执行 ./elasticsearch命令即可
+
+修改 config/elasticsearch.yml
+将network.host放开，修改为0.0.0.0下
+将http.port放开
+
+解决 max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+原因：max_map_count这个参数就是允许一个进程在VMAs(虚拟内存区域)拥有最大数量，VMA是一个连续的虚拟地址空间，当进程创建一个内存映像文件时VMA的地址空间就会增加，当达到max_map_count了就是返回out of memory errors。
+出现这个问题，我们需要切换到root用户下
+vi /etc/sysctl.conf 
+vm.max_map_count=655360
+sysctl -p
+
+解决 the default discovery settings are unsuitable for production use; at least one of [discovery.seed_hosts, discovery.seed_providers, cluster.initial_master_nodes] must be configured
+
+修改elasticsearch.yml
+取消注释保留一个节点
+cluster.initial_master_nodes: ["node-1"]
+这个的话，这里的node-1是上面一个默认的记得打开就可以了
+
+
+后台启动 -d 

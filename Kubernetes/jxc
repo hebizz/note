@@ -1,0 +1,20 @@
+touch ~/.ssh/admin-hash
+
+./jxc pki create admin
+
+./jxc init k8s master admin  hash 10.53.134.80
+
+~/.jxc/config.yaml
+
+./jxc patch k8s cluster-default 10.53.134.80
+./jxc fetch k8s cluster-default 
+./jxc attach k8s cluster-default
+
+./jxc  config force context.account admin
+
+kubeadm join 10.53.134.146:6443 --token fgtb9w.zx4mam4kdj1lnlqj  --discovery-token-ca-cert-hash  sha256:77e2f4b79c56dd841fb388a9363b5469483bafe46470a66a140fd597c96ea0b9 
+
+
+
+ rm -rf /etc/kubernetes/  /var/lib/kubelet/  /var/lib/etcd/  ~/.kube/
+ apt remove --purge docker-ce  containerd.io

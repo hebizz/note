@@ -1,0 +1,64 @@
+#mongo 数组元素的插入
+$addToSet 如果数组元素含有该元素，则不添加
+$push  无论有无，追加元素
+
+#mongo 数组元素的删除
+$pull 
+
+#mongo 匹配数组元素的某一个
+$elemMatch
+
+
+#struct 定义的字段不赋初值时，映射到mongo数据时，除了int类型默认值为0,其他string,string[]等等类型为Null，
+所以在插入数据时，需要对这些数据进行一步初始化的操作
+
+#db.watch.find()
+TypeError: db.watch.find is not a function (shell):1
+解决方法:db.getCollection("watch").find(), 因为watch,group与Mongo的内置函数重名,tab键可以看出。
+
+#primitive.ObjectIDFromHex将字符串转为primitive.ObjectID类型
+如果结构体定义为primitive.ObjectID,则理解为在数据赋值时强转了
+
+#mongo update 方法
+Update(bson.M{"cameraIdList":
+      bson.M{"$elemMatch":
+        bson.M{"$gte": id}}},
+      bson.M{"$pull":
+        bson.M{"cameraIdList":
+          bson.M{"$gte": id}}})
+更新操作第一位为操作符，注意与query条件的不同
+
+
+#go mongo模糊查询
+bson.M{"detail": primitive.Regex{Pattern: "字符串"} 
+
+#mongoexport 使用
+mongoexport -h 10.53.2.217 --port 27017 -u 用户名 -p 密码 -d edgeManager -c log -q '{eventType:/logi/}' -f recordTime,eventType,detail  --csv -o test.excel
+默认导出为json格式，指定--csv格式（必须和-f连用），指定--csv的好处是可以不用展示_id
+
+
+#mongo 增加索引
+1.可以增块查询的速度
+2.增块修改的速度
+3.增快sort的速度
+
+虽然索引可以提升查询性能，但是会降低插入性能(会开辟一段新的内存空间去存储索引)
+数字索引要比字符串索引快得多
+_id 本质上就是索引
+
+1:创建索引时,1表示按升序存储,-1表示按降序存储。
+
+2:可以创建复合索引,如果想用到复合索引,必须在查询条件中包含复合索引中的前N个索引列
+
+3: 如果查询条件中的键值顺序和复合索引中的创建顺序不一致的话,
+MongoDB可以智能的帮助我们调整该顺序,以便使复合索引可以为查询所用。
+
+4: 可以为内嵌文档创建索引,其规则和普通文档创建索引是一样的。
+
+5: 一次查询中只能使用一个索引,$or特殊,可以在每个分支条件上使用一个索引。
+
+6: $where,$exists不能使用索引,还有一些低效率的操作符,比如:$ne,$not,$nin等。
+
+7: 设计多个字段的索引时,应该尽量将用于精确匹配的字段放在索引的前面。
+
+collection.create_index([('x',1),('y',1)])

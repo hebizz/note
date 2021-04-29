@@ -1,0 +1,108 @@
+#进入正在运行的容器
+docker exec -it c7188be9bd7b /bin/bash
+
+-i: 以交互模式运行容器，通常与 -t 同时使用
+-t: 为容器重新分配一个伪输入终端
+-P: 随机端口映射，容器内部端口随机映射到主机的高端口
+-p: 指定端口映射，格式为：主机(宿主)端口:容器端口
+
+--privileged 
+使用该参数，container内的root拥有真正的root权限。
+否则，container内的root只是外部的一个普通用户权限。
+privileged启动的容器，可以看到很多host上的设备，并且可以执行mount。
+甚至允许你在docker容器中启动docker容器
+
+#删除所有容器和镜像
+docker rm `docker ps -a -q`
+docker rmi `docker images -q`
+ 
+
+docker un -w 路径(设置工作目录)
+
+
+在 multistage 的用法中，可以使用 COPY 命令把前一阶段构建的产物拷贝到另一个镜像中
+
+ADD
+解压压缩文件并把它们添加到镜像中
+从 url 拷贝文件到镜像中
+
+#进入已经停止的容器内部
+docker start  容器名
+docker attach 容器名(不建议使用，多人操作时，如果阻塞，其他人也用不了）
+
+docker run -it --entrypoint bash 镜像
+
+docker -e 给容器传递环境变量 （注意要将镜像名放在最后，否则无效）
+
+#数据卷
+数据卷 是一个可供一个或多个容器使用的特殊目录，它绕过 UFS，可以提供很多有用的特性：
+1.数据卷可以在容器之间共享和重用
+2.对数据卷的修改会立马生效
+3.对数据卷的更新,不会影响镜像
+4.数据卷 默认会一直存在，即使容器被删除
+注意：数据卷 的使用，类似于 Linux 下对目录或文件进行 mount，镜像中的被指定为挂载点的目录中的文件会隐藏掉，能显示看的是挂载的 数据卷。.0
+
+
+
+#ADD
+解压压缩文件并把它们添加到镜像中
+从 url 拷贝文件到镜像中
+COPY 和 ADD 指令中选择的时候，可以遵循这样的原则，所有的文件复制均使用 COPY 指令，仅在需要自动解压缩的场合使用 ADD
+
+
+
+#ARG 构建参数
+格式：ARG <参数名>[=<默认值>]
+构建参数和 ENV 的效果一样，都是设置环境变量。所不同的是，ARG 所设置的构建环境的环境变量，在将来容器运行时是不会存在这些环境变量的。不要使用 ARG 保存密码之类的信息
+
+
+docker image prune --force --all或者docker image prune -f -a` : 删除所有不使用的镜像
+docker container prune -f: 删除所有停止的容器
+
+
+
+docker save -o <保存路径> <镜像名称:标签>
+docker load --input  *.tar
+
+docker export <容器名> > <保存路径>
+docker import <文件路径>  <容器名>
+
+#Dockerfile 下载优化
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+
+
+实时查看docker容器日志
+$ sudo docker logs -f -t --tail 行数 容器名
+
+
+#docker run 自动重启
+docker run --restart always : docker守护进程重启后会跟随重启
+docker run --restart unless-stopped : docker守护进程重启后不会跟随重启
+
+
+
+#docker 删除所有停止运行的容器
+docker container prune 
+docker system prune -a
+
+#docker 删掉COPY层的数据
+方法1： 采用多阶段构造
+方法2： docker build + --squash (需要在daemon.json 中 打开experimental 因为此方法还在试验阶段)
+
+#查看docker 容器，镜像，卷
+docker system df
+
+
+#进入docker容器的4种方法 
+https://blog.csdn.net/u010397369/article/details/41045251
+
+#编译scratch支持的go的二进制的方法，cgo需要libc库
+CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+
+#  清除docker 日志
+docker inspect --format='{{.LogPath}}' <container_name_or_id>

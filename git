@@ -1,0 +1,17 @@
+git reset --hard  8gag421fa...  回退到历史某个版本
+
+# 重命名远端分支
+git branch -m oldbranch newbranch
+git push --delele origin oldbranch
+git push origin newbranch
+git branch --set-upstream-to origin/newbranch
+
+
+#拉取一个远程分支
+git remote update
+git fetch 
+git checkout --track origin/<BRANCH-NAME>
+
+#删除远端分支
+git branch -r -d origin/branch-name
+git push origin :branch-name

@@ -1,0 +1,72 @@
+Supervisor（http://supervisord.org/）是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具，不支持Windows系统。
+它可以很方便的监听、启动、停止、重启一个或多个进程。用Supervisor管理的进程，当一个进程意外被杀死，supervisort监听到进程死后，会自动将它重新拉起，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制。
+
+#安装和配置
+pip install supervisor
+
+mkdir /etc/supervisor
+echo_supervisord_conf > /etc/supervisor/supervisord.conf
+
+进程管理配置参数，不建议全都写在supervisord.conf文件中，应该每个进程写一个配置文件放在include指定的目录下包含进supervisord.conf文件中。
+1> 创建/etc/supervisor/config.d目录，用于存放进程管理的配置文件
+2> 修改/etc/supervisor/supervisord.conf中的include参数，将/etc/supervisor/conf.d目录添加到include中
+
+[include]
+files = /etc/supervisor/config.d/*.ini
+
+[program:rkmpp]
+command=bash run.sh
+directory=/usr/local/rkmpp/bin
+autostart=true #启动服务端时启动 
+autorestart=true # 进程中断时自动重启
+startretries=20 #重启次数
+startsecs=1   #这个选项是子进程启动多少秒之后，此时状态如果是running，则我们认为启动成功了
+stdout_logfile=/usr/local/rkmpp/bin/rkmpp.log #进程日志信息
+logfile_maxbytes=50MB ;上面那个日志文件的最大的大小，当超过50M的时候，会生成一个新的日志文件。当设置为0时，表示不限制文件大小  默认值是50M，非必须设置。              
+logfile_backups=10 #日志文件保持的数量
+
+
+#启动和运行
+
+supervisord -c /etc/supervisor/supervisord.conf
+
+supervisorctl status   查看状态
+supervisorctl update  更新配置
+pervisorctl stop program_name  停止某个进程 
+supervisorctl start program_name  启动某个进程， 不停supervisor 添加program
+supervisorctl restart program_name  重启某个进程
+supervisorctl stop all  关闭所有进程
+supervisorctl reload    重新启动配置中的所有程序
+supervisorctl update
+
+
+nodaemon  = true 设置为前台启动，在docker启动时非常关键！！！
+
+
+
+unlink /tmp/supervisor.sock
+
+开机自启(如果用apt-get install supervisor，则会自己默认开机启动)
+ubuntu
+编辑/etc/rc.local文件，
+在exit 0 之前加入以下命令:
+/usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+
+
+[program:jxserving]
+command=python3 /jxserving/release-pack/run.py
+directory=/
+autostart = true
+autorestart = true
+startretries = 3
+stdout_logfile_maxbytes = 100MB
+stdout_logfile_backups = 3
+stderr_logfile_maxbytes = 100MB
+stderr_logfile_backups = 3
+stdout_logfile=/data/logs/supervisor/%(program_name)s_stdout.log
+stderr_logfile=/data/logs/supervisor/%(program_name)s_stderr.log
+                                                                
+
+
+supervisord 看报错信息

@@ -1,0 +1,43 @@
+ubuntu16 开机启动
+方式一：
+将脚本放在/etc/init.d/目录下，给+x 权限
+
+然后runlevel查看系统用户相应的模式
+(0，1... 6 代表启动级别： 0代表停止，1代表单用户模式，2-5代表多用户模式，6代表重启)
+
+cd 到/etc/rc *.d 相应的文件夹内
+创建软链接，ln -s 原始脚本  S×× name
+命名规则是有规定的，开头必须大写S，后面跟的数字98，是你设定的启动序号，即优先级，后面名字无限定。
+
+
+方式二：
+直接将命令或者脚本放在/etc/rc.local文件内，并给rc.local文件加x权限
+
+
+方式三：
+用crontab 定时任务
+
+apt-get install cron 安装
+crontab -l 列出当前用户的所有任务
+crontab -e 编辑任务
+crontab -r 删除当前用户的所有定时任务
+
+脚本内需要声明绝对路径，环境变量
+
+注意清理系统用户的邮件日志
+每条任务调度执行完毕，系统都会将任务输出信息通过电子邮件的形式发送给当前系统用户，这样日积月累，日志信息会非常大，可能会影响系统的正常运行，因此，将每条任务进行重定向处理非常重要。 例如，可以在crontab文件中设置如下形式，忽略日志输出:
+
+0 */3 * * * /usr/local/apache2/apachectl restart >/dev/null 2>&1
+
+
+
+ubuntu18 开机启动不使用init，改用systemd
+1. ln -fs /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+
+
+2. sudo echo "[Install]
+WantedBy=multi-user.target
+Alias=rc-local.service" >> /etc/systemd/system/rc-local.service
+
+3.chmod +x /etc/rc.local
+(最前面添加 "#!/bin/bash)

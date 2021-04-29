@@ -1,0 +1,33 @@
+Docker镜像由很多镜像层（Layers）组成（最多127层），镜像层依赖于一系列的底层技术，比如文件系统（filesystems）、写时复制（copy-on-write）、联合挂载（union mounts）等技术
+
+一、优化基础镜像
+优化基础镜像的方法就是选用合适的更小的基础镜像，常用的 Linux 系统镜像一般有 Ubuntu、CentOs、Alpine，其中Alpine更推荐使用
+centos>debian>ubuntu>alpine
+
+scratch:
+scratch是一个空镜像，只能用于构建其他镜像，比如你要运行一个包含所有依赖的二进制文件，如Golang程序，可以直接使用scratch作为基础镜像
+
+busybox:
+scratch是个空镜像，如果希望镜像里可以包含一些常用的Linux工具，busybox镜像是个不错选择，镜像本身只有1.16M，非常便于构建小镜像
+
+Alpine:
+1、小巧：基于Musl libc和busybox，和busybox一样小巧，最小的Docker镜像只有5MB；
+2、安全：面向安全的轻量发行版；
+3、简单：提供APK包管理工具，软件的搜索、安装、删除、升级都非常方便。
+4、适合容器使用：由于小巧、功能完备，非常适合作为容器的基础镜像。
+
+
+
+二、串联 Dockerfile 指令
+在定义Dockerfile时，如果太多的使用RUN指令，经常会导致镜像有特别多的层，镜像很臃肿，而且甚至会碰到超出最大层数（127层）限制的问题，遵循 Dockerfile 最佳实践，我们应该把多个命令串联合并为一个 RUN（通过运算符&&和/ 来实现）
+
+提示：为了应对镜像中存在太多镜像层，Docker 1.13版本以后，提供了一个压扁镜像功能，即将 Dockerfile 中所有的操作压缩为一层。这个特性还处于实验阶段，Docker默认没有开启，如果要开启，需要在启动Docker时添加-experimental 选项，并在Docker build 构建镜像时候添加 --squash 。我们不推荐使用这个办法，请在撰写 Dockerfile 时遵循最佳实践编写，不要试图用这种办法去压缩镜像
+
+
+ADD 指令会令镜像构建缓存失效，从而可能会令镜像构建变得比较缓慢
+
+
+
+三、使用多阶段构建
+
+                                                     

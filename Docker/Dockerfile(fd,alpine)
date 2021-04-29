@@ -1,0 +1,7 @@
+FROM registry.jiangxingai.com:5000/base/opencv3.4-tfbase:arm64v8-cpu-0.1.0
+
+RUN pip3 install  --no-cache-dir  paho-mqtt
+
+COPY ./fd.py /home/
+
+ENTRYPOINT ["python3","/home/fd.py"]

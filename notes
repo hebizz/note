@@ -1,0 +1,541 @@
+Boost库是一个可移植、提供源代码的C++库，作为标准库的后备，是C++标准化进程的开发引擎之一
+
+curses是一个在Linux/Unix下广泛应用的图形函数库，作用是可以在终端内绘制简单的图形用户界面
+
+#pip安装
+wget https://bootstrap.pypa.io/get-pip.py  
+python get-pip.py  
+
+#rk3399 pip tf
+wget https://github.com/lhelontra/tensorflow-on-arm/releases/download/
+v1.13.1/tensorflow-1.13.1-cp35-none-linux_aarch64.whl
+
+apt-get install python3-h5py
+
+pip install tensorflow-1.13.1-cp35-none-linux_aarch64.whl
+
+pip3 install matplotlib
+
+#python 执行c++代码
+g++ c++代码 -o 生成的可执行文件 -lpthread --std=c++11 `pkg-config --cflags --libs opencv`
+调用py文件os.system("./可执行文件")
+
+
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 100
+
+#python3.5安装
+wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz
+tar -zxvf Python-3.5.2.tgz
+cd Python-3.5.2
+mkdir /usr/local/python3
+./configure --prefix=/usr/local/python3
+make
+make install
+
+
+#.hpp.gch文件
+gch即预编译头，将头文件预编译为二进制代码后后续编译使用。当多个源文件包含一个头文件，正常流程是将其在每个源文件中解析一遍，造成重复浪费。使用gch，将头文件作预编译头形成中间处理的二进制代码，然后再包含进源文件中。
+
+适用：gch适用于被多个源文件包含的头文件，且头文件不会经常做修改。
+
+注意：gch提高了编译速度，但需要注意在默认情况下gch不会因为头文件的更新而更新，从而在编译过程中形成一个不容易发现的坑。需要将头文件和gch设置为依赖关系。
+
+对于此的解决方案,只需要将 Makefile文件的clean目标项修改为 *.h.gch  
+
+#linux cat
+cat 命令用于连接文件并打印到标准输出设备上。
+
+清空 /etc/test.txt 文档内容：cat /dev/null > /etc/test.txt
+
+把 textfile1 的文档内容加上行号后输入 textfile2 这个文档里：cat -n textfile1 > textfile2
+
+
+cat 也可以用来制作镜像文件。例如要制作软盘的镜像文件，将软盘放好后输入：cat /dev/fd0 > OUTFILE
+相反的，如果想把 image file 写到软盘，输入：cat IMG_FILE > /dev/fd0
+注：
+1. OUTFILE 指输出的镜像文件名。
+2. IMG_FILE 指镜像文件。
+3. 若从镜像文件写回 device 时，device 容量需与相当。
+4. 通常用制作开机磁片。
+
+#shell if
+[ -z STRING ]  “STRING” 的长度为零则为真。  
+[ -n STRING ] or [ STRING ]  “STRING” 的长度为非零 non-zero则为真。
+
+#linux tail
+1、tail -f filename
+说明：监视filename文件的尾部内容（默认10行，相当于增加参数 -n 10），刷新显示在屏幕上。退出，按下CTRL+C。
+2、tail -n 20 filename
+说明：显示filename最后20行。
+3、tail -r -n 10 filename
+说明：逆序显示filename最后10行。
+
+#systemctl enable/disable
+设置服务自启动：systemctl enable docker.service
+禁止服务自启动：systemctl disable docker.service
+
+
+#linux apt-key 
+apt-key命令用于管理Debian Linux系统中的软件包密钥。每个发布的deb包，都是通过密钥认证的，apt-key用来管理密钥
+apt-key list          #列出已保存在系统中key。
+apt-key add keyname   #把下载的key添加到本地trusted数据库中。
+apt-key del keyname   #从本地trusted数据库删除key。
+apt-key update        #更新本地trusted数据库，删除过期没用的key。
+
+#linux wget
+wget -P	指定下载文件的存放目录 /dir
+
+#linux cp
+-a ：相当于 -pdr 的意思（参数pdr分别为：保留权限，复制软链接本身，递归复制）
+-p ：可以保持权限、宿主、时间栈，还可能包括link等
+
+#unix shell的变量分类
+在Shell中有三种变量：内部变量,环境变量,用户变量。
+内部变量：系统提供，不用定义，不能修改
+环境变量：系统提供，不用定义，可以修改,可以利用export将用户变量转为环境变量.
+用户变量：用户定义，可以修改
+(1)内部变量(系统变量,环境变量,参数变量,预定义变量)
+内部变量是Linux所提供的一种特殊类型的变量，这类变量在程序中用来作出判断。在shell程序内这类变量的值是不能修改的。
+   表示方法     描述
+   $n     $1 表示第一个参数，$2 表示第二个参数 ...
+   $#     命令行参数的个数
+   $0     当前程序的名称
+   $?     前一个命令或函数的返回码
+   $*     以"参数1 参数2 ... " 形式保存所有参数
+   $@     以"参数1" "参数2" ... 形式保存所有参数
+   $$     本程序的(进程ID号)PID
+(2) 环境变量
+  Linux环境（也称为shell环境）由许多变量及这些变量的值组成，由这些变量和变量的值决定环境外观。这些变量就是环境变量。
+包括两部分,一是,由系统设置的,主要包括： HOME,LOGNAME,MAIL,PATH,PS1,PWD,SHELL,TERM
+二是,用户在命令行中设置的,使用export命令,但是用户注销时值将丢失
+(3)用户变量(私有变量,本地变量)
+  在命令行中自己设定的.
+
+#linux awk 
+ awk '{print $n}' n代表第几个参数
+
+#linux locale
+ apt-get install language-pack-zh-hans(en)
+
+#linux e2fsck
+用于检查使用 Linux ext2 档案系统的 partition 是否正常工作
+-p : 对 partition 做检查，若有问题便自动修复
+
+
+#/dev/null /dev/zero
+/dev/null，外号叫无底洞，你可以向它输出任何数据，它通吃，并且不会撑着！
+/dev/zero，是一个输入设备，你可你用它来初始化文件。该设备无穷尽地提供0，可以使用任何你需要的数目——设备提供的要多的多。他可以用于向设备或文件写入字符串0。
+/dev/null------它是空设备，也称为位桶（bit bucket）。任何写入它的输出都会被抛弃。如果不想让消息以标准输出显示或写入文件，那么可以将消息重定向到位桶
+
+
+#linux od
+-tx1选项表示将文件中的字节以十六进制的形式列出来，每组一个字节（类似hexdump的-c选项）
+-tc选项表示将文件中的ASCII码以字符形式列出来（和hexdump类似，输出结果最左边的一列是文件中的地址，默认以八进制显示）
+-Ax选项要求以十六进制显示文件中的地址
+
+#nohup &
+&前台启动进程，屏蔽crtl+c 信号，接受session信号
+nohup后台启动进程,接受crtl+c 信号，屏蔽session信号
+nohup+& 屏蔽crtl+c 和 session信号
+
+
+#pip requirement
+pip freeze > requirements.txt
+pip install -r requirements.txt
+
+#chattr
+chattr -R +i 对目录
+chattr +i 对文件
+lsattr 查看
+
+#shell 截取字符串
+length=${#变量}
+${变量:n}:从左边第n+1个开始截取
+
+apt-get remove --purge xxx # 移除应用及配置
+apt-get autoremove # 移除没用的包
+
+#swappoff 
+ 
+#tar -zxvf  解压
+tar -zcvf  压缩包名字 打包
+
+zip命令
+zip -r myfile.zip ./*
+将当前目录下的所有文件和文件夹全部压缩成myfile.zip文件,－r表示递归压缩子目录下所有文件.
+
+unzip命令
+unzip -o -d /home/sunny myfile.zip
+把myfile.zip文件解压到 /home/sunny/
+-o:不提示的情况下覆盖文件；
+-d:-d /home/sunny 指明将文件解压缩到/home/sunny目录下；
+
+
+
+#pip install
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -U funcat
+-i: 指定库的安装源
+-U:升级 原来已经安装的包，不带U不会装新版本，带上U才会更新到最新版本。
+
+
+
+
+curl -X GET http://localhost:9099/api/v1alpha/switch
+curl -X POST http://10.53.134.125:8080/api/v1alpha/switch -d '{"model": "voc", "mode": "frozen", "preheat": "True"}'
+
+
+auto eth0
+iface eth0 inet dhcp
+        metric 101
+
+
+# ubuntu static ip
+auto eth0
+iface eth0 inet static
+    address 10.55.2.83
+    netmask 255.255.255.0
+    gateway 10.55.2.253
+    dns-nameserver 10.51.0.1
+    dns-nameservers 10.0.0.1 8.8.8.8
+    dns-domain acme.com
+    dns-search acme.com
+
+
+    openssl req -new -key "dockerhub.jiangxingai.com.key" -out "site.csr" -sha256 -subj '/C=CN/ST=Shanxi/L=Datong/O=Your Company Name/CN=dockerhub.jiangxingai.com'
+
+    openssl req -newkey rsa:2048 -nodes -keyout dockerhub.jiangxingai.net.key -x509 -days 3650 -out dockerhub.jiangxingai.net.pem -subj “/C=CN/ST=state/L=city/O=xxx/OU=dockerhub.jiangxingai.com/”
+
+
+ln -s /usr/local/protobuf/lib/libprotobuf.so.20.0.1 /usr/lib/aarch64-linux-gnu/libprotobuf.so.20
+ln -s /usr/local/protobuf/lib/libprotoc.so.20.0.1 /usr/lib/aarch64-linux-gnu/libprotoc.so.20
+
+#ssh 免密登录
+１．提示“ Permissions 0644 for ‘/root/.ssh/id_rsa.pub’ are too open”
+
+解决方法：使用chmod 0600 /root/.ssh/id_rsa.pub更改将公钥权限改成“600”
+
+２．提示“Enter passphrase for key /root/.ssh/id_rsa.pub”让输入私钥，可不论输与不输都不能直接登录
+
+解决方法： 
+在本地执行：
+
+eval `ssh-agent` 
+ssh-add
+
+ssh-agent是用于管理密钥，ssh-add用于将密钥加入到ssh-agent中，SSH可以和ssh-agent通信获取密钥，这样就不需要用户手工输入密码了。 
+顺序执行以上两条命令后就可以用ssh免密登录远程机器了，但这个配置只对当前会话生效，会话关闭或机器重启后都需要重新执行这两条命令。将命令放到~/.bash_profile中，就可以免去每次输入的麻烦
+
+#ssh 免密登录
+ssh-keygen(本机)
+
+touch authorized_keys(远程主机)
+chmod 600 authorized_keys
+chmod 700 .ssh 
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub admin@10.53.134.153
+
+
+#获取uuid
+cat /proc/sys/kernel/random/uuid 
+uuid-runtime (uuidgen)
+
+
+
+#apt-file,apt-key
+apt-file
+apt-file是一个软件包查找工具，可以查到软件包所含的文件和安装的位置。
+apt-file update
+更新软件包的文件库，第一次使用或apt-get update后都需运行一次。
+apt-file search file_name
+查找该文件存在于哪些软件包中。
+apt-file list package_name
+显示该软件包的文件。
+apt-key
+apt-key是Debian软件包的安全管理工具。每个发布的deb包，都是通过密钥认证的，apt-key用来管理密钥。
+apt-key list
+列出已保存在系统中key。
+apt-key add keyname
+把下载的key添加到本地trusted数据库中。
+apt-key del keyname
+从本地trusted数据库删除key。
+apt-key update
+更新本地trusted数据库，删除过期没用的key。
+
+
+
+
+#查询软件包
+apt-cache search 软件包
+apt-cache depends 软件包(查看依赖)
+
+
+#scp，ssh, ssh-copy-id 第一次访问时去掉确认公钥的yes选项
+1. vim /etc/ssh/ssh_config 
+   StrictHostKeyChecking no 
+2. 在使用ssh,scp ssh-copy-id 时加上参数-o stricthostkeychecking=no
+
+
+
+#取消sudo密码
+chmod 744 /etc/sudoers
+vim /etc/sudoers
+加上 admin ALL=(ALL) NOPASSWD:ALL
+chmod 440 /etc/sudoers
+
+如果在修改sudoers的过程中把sudoers搞坏了，然后sudo权限和root权限都不能用，可以使用命令：kexec bash
+
+
+Map是类型，json是数据格式。如果没有辅助的类库对JSON处理，他实际就是一个字符串。
+
+
+
+
+
+
+
+
+#a start job is running for dev-ttyFIQ0.device问题
+/lib/systemd/system/serial-getty\@.service
+修改 BindsTo=dev-%i   去掉后面 .device
+
+
+sudo的配置文件在/etc/sudoers，需要root权限进行以下操作：
+1.进入root模式：
+su -
+2.添加sudoers文件写权限：
+chmod u+w /etc/sudoers
+3.添加当前用户到sudoers文件里：
+
+    找到"root ALL=(ALL) ALL"这一行，在下行添加"spacey ALL=(ALL) ALL"就行了(不需要引号)，spacey为用户名，如果不想每次都输密码就将"#%wheel ALL=(ALL)NOPASSWD:ALL"这行的#去掉(即取消注释)，保存后退出
+
+4.撤销sudoers写权限：
+chmod u-w /etc/sudoer
+5.添加用户到wheel组(spacey为用户名)：
+usermod -G wheel spacey
+
+
+
+#centos7 配置dhcp
+vim /etc/sysconfig/network-scripts/ifcfg-eth0 
+
+NAME=eth0
+DEVICE=eth0
+ONBOOT=yes
+BOOTPROTO=dhcp
+TYPE=Ethernet
+
+#centos7 清除多余ip
+ip addr del 172.16.200.6 dev eth0
+
+#centos7 关闭防火墙
+systemctl stop firewalld.service            #停止firewall
+systemctl disable firewalld.service        #禁止firewall开机启动
+
+#centos7 更新源
+yum clean all
+yum makecache
+yum update
+
+#centos7 更新本地时间
+ntpdate pool.ntp.org
+
+#centos7 重启网络
+service NetworkManager restart
+
+#rk1808 buildroot kernel 编译
+ `make savedefconfig
+cp defconfig arch/arm64/configs/rk1808_linux_defconfig
+./build.sh kernel
+
+
+#debian 创建时把用户加入不同的用户组,adm 为组
+useradd -s '/bin/bash' -m -G adm,sudo admin
+
+
+passwd admin
+
+passwd root 
+
+
+-d<登入目录> 指定用户登入时的目录。
+-g<群组> 初始群组。
+-G<群组> 非初始群组。
+-m 自动创建用户的家目录。
+-M 不要创建用户的家目录。
+-N 不要创建以用户名称为名的群组。
+-s 指定用户登入后所使用的shell
+
+指定-g时，不会增加用户组，会加到相应的组里去，指定-G时，会在/etc/group, /etc/passwd 创建相应的用户组
+
+#非交互式修改密码
+echo "test:1234" | chpasswd
+
+#rknn 拿device id
+from rknn.api import RKNN
+a = RKNN()
+a.list_devices()
+
+
+bridge,iptables
+
+
+#rk3399pro kernel 编译
+make savedefconfig  
+cp defconfig  arch/arm64/configs/firefly3399pro_linux_defconfig
+
+打开acpi选项会导致kernel编译失败
+
+
+
+
+#minicom 使用
+需使用Ctrl+a 进入设置状态
+2）按z进入设置菜单
+（1）S键：发送文件到目标系统中；
+（2）W键：自动卷屏。当显示的内容超过一行之後，自动将後面的内容换行。这个功能在查看内核的啓动信息时很有用。
+（3）C键：清除屏幕的显示内容；
+（4）B键：浏览minicom的历史显示；
+（5）X键：退出mInicom，会提示确认退出。
+（6）O键：配置串口信息
+
+
+
+ALSA device list
+#0: rockchip,hdmi
+#1: rockchip,rk809-codec
+
+
+#查看iotedge是否正常工作
+jxcorectl
+ifconfig tun0
+ping master.iotedge
+
+
+# 解决ubuntu16/18 ::A start job is running for Raise network interface(5min 4s)
+sudo vim /etc/systemd/system/network-online.target.wants/networking.service
+TimeoutStartSec=5min 修改为TimeoutStartSec=2sec
+
+
+# 解压img镜像
+file ***.img (查看rootfs状态和文件格式)
+mount -o loop ***.img image
+
+#
+mount -o rw,remount / 
+
+
+#启动mqtt server端
+mosquitto -c /etc/mosquitto/mosquitto.conf
+
+
+#rk1808 ubuntu18 npu移植
+/usr/lib/:
+cl_viv_vx_ext.h libCLC.so libOpenVX.so libGAL.so libLLVM_viv.so libNNVXCBinary.so libOpenCL.so libOpenVXU.so libOvx12VXCBinary.so libRKOpenCL.solibVSC.so  libneuralnetworks.so
+
+/usr/local/lib/python3.6/dist-packages/rknn
+
+/usr/lib/modules/galcore.ko
+
+/usr/bin/rknn_server, /usr/bin/start_rknn.sh
+
+/etc/init.d/S99NPU_init
+
+
+
+
+
+#编译带有rtmp服务的nginx
+./configure      --prefix=/opt/nginx    --with-http_ssl_module    --add-module=../nginx-rtmp-module   
+
+
+
+
+#ide 注册码
+http://idea.medeming.com/jihuo/
+
+
+#Goland 快捷键
+Ctrl + Shift + F 全局查找
+Ctrl + Shift + R 全局替换
+shift + l 格式化优化代码
+
+
+#关于http/304,服务请求 
+https://www.cnblogs.com/ziyunfei/archive/2012/11/17/2772729.html
+
+
+#pip 升降级
+python -m pip install pip==版本
+
+
+/var/log/journal
+
+
+#linux 挂载ssd 卡
+查看系统检测的硬盘 命令：lsblk
+
+sudo mkdir /data
+mkfs -t ext4 /dev/sdb
+sudo mount /dev/nvmeOn1 /data
+/dev/nvme0n1  /data auto defaults,nofail,comment=cloudconfig  0  2（fstab添加）
+
+#移动docker镜像至ssd下
+systemctl stop docker
+rm -rf /media/ssd/docker
+mkdir /media/ssd
+mv /var/lib/docker /media/ssd
+ln -s /media/ssd/docker /var/lib/docker
+
+
+
+#linux增加swap分区,用文件作为Swap分区
+
+1.创建要作为swap分区的文件:增加1GB大小的交换分区，则命令写法如下，其中的count等于想要的块的数量（bs*count=文件大小）。
+# dd if=/dev/zero of=/root/swapfile bs=1M count=1024
+2.格式化为交换分区文件:
+# mkswap /root/swapfile #建立swap的文件系统
+3.启用交换分区文件:
+# swapon /root/swapfile #启用swap文件
+4.使系统开机时自启用，在文件/etc/fstab中添加一行：
+/root/swapfile swap swap defaults 0 0
+
+新建和增加交换分区用到的命令为：mkswap、swapon等，而想关闭掉某个交换分区则用“swapoff /dev/sdb2”这样的命令即可。
+
+
+#linux 时间设置
+ubuntu18 当timedatectl 开启ntp时，date -s 设置时间不生效
+timedatectl set-ntp no 关闭ntp选项，再执行date -s 指令
+然后同步系统时间到硬件时间 hwclock -w
+
+系统同步时间流程:关机时 系统时间同步到硬件时间
+              开机时 硬件时间同步到系统时间，然后失效
+
+
+
+#ubuntu 自动挂载工具
+apt-get install ntfs-config
+
+
+#ide 注册码
+http://idea.medeming.com/jihuo/
+
+
+
+ # 获取linux 输出指定行列
+ |awk '{print $5}' | sed -n '2p'
+
+
+ # fuser -m -v /dev/sdb1
+ 查看文件进程和用户
+
+ # shell下控制命令执行超时自动终止
+持续执行的任务 & { sleep 超时时间 ; kill $! & }
+
+
+# c++ 安装json 库
+apt-get install libjsoncpp-dev
+g++ temperature.cpp  -I ./include -L ./lib/ -L ./lib/HCNetSDKCom -lhcnetsdk -lHCCore -lssl -lcrypto -ljsoncpp
+
+
+RuntimeError is not JSON serializable
+如果python里面想返回一个runtimeError, 需要format一下"{}".format

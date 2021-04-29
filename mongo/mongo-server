@@ -1,0 +1,38 @@
+下载: https://www.mongodb.org/dl/linux/x86_64
+
+tar -xvzf mongodb-linux-x86_64-3.2.10.tgz     
+mv mongodb-linux-x86_64-3.2.10 /usr/local/mongodb     
+cd /usr/local/mongodb/    
+
+cd /usr/local/mongodb/    
+mkdir data  
+mkdir log    
+cd data       
+mkdir db     
+
+vi /etc/profile  
+export MONGODB_HOME=/usr/local/mongodb  
+export PATH=$PATH:$MONGODB_HOME/bin  
+
+source /etc/profile
+
+cd /usr/local/mongodb/    
+mkdir conf 
+cd conf    
+touch mongodb.conf  
+
+vim mongodb.conf
+添加以下内容：
+dbpath = /usr/local/mongodb/data/db 
+logpath = /usr/local/mongodb/log/mongodb.log 
+port = 27017  #端口  
+fork = true  #以守护程序的方式启用，即在后台运行  
+
+cd /usr/local/mongodb/   
+./bin/mongod --config ./conf/mongodb.conf  //启动服务
+
+cd /usr/local/mongodb/bin
+./mongo   //启动客户端
+
+cd /usr/local/mongodb/bin
+./mongod -shutdown -dbpath=/usr/local/mongodb/data/db  //停止mongodb

@@ -1,0 +1,32 @@
+json.dumps python转json
+json.loads json转python
+
+json对象 = demjson.encode(python对象)
+python对象 = demjson.decode(json对象)
+
+
+生成: pip freeze > requirements.txt
+导入: pip install -r requirements.txt
+
+#设置进程名
+import setproctitle
+setproctitle.setproctitle("进程别名")
+
+#python time模块
+时间转时间戳：
+dt = "2016-05-05 20:28:54"
+timeArray = time.strptime(dt, "%Y-%m-%d %H:%M:%S")
+timestamp = time.mktime(timeArray)
+
+重新格式化时间:
+dt = "2016-05-05 20:28:54"
+timeArray = time.strptime(dt, "%Y-%m-%d %H:%M:%S")
+dt_new = time.strftime("%Y%m%d-%H:%M:%S",timeArray)
+（dt_new=20160505-20:28:54)
+
+时间戳转换成时间：
+timestamp = 1462451334
+time_local = time.localtime(timestamp)
+dt = time.strftime("%Y-%M-%D %H:%M:%S",time_local)
+
+
